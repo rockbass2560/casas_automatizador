@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__name__="Main"
+__name__="read"
 
 import cPickle
 from selenium.webdriver.support.select import Select
@@ -10,23 +10,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 
 shortWaitTime = 3
-longWaitTime = 5
-veryLongTime = 45
-
-def waitElement(funcElem): #Pendiente de terminar
-    intentos = 0
-    elem = ""
-    while intentos < 11:
-        try:
-            elem = funcElem()
-            break
-        except Exception as ex:
-            print(ex.message)
-            intentos+=1
-            time.sleep(shortWaitTime)
-            if intentos>10:
-                raise Exception("Elemento no encontrado")
-    return elem
+longWaitTime = 4
 
 driver = webdriver.Chrome("chromedriver.exe")
 driver.get("https://www.nocnok.com/")
@@ -39,6 +23,7 @@ time.sleep(shortWaitTime)
 driver.find_element_by_xpath("//*[@id=\"Menu\"]/ul[1]/li[4]/a").click()
 driver.find_element_by_xpath("//*[@id=\"Menu\"]/ul[1]/li[4]/ul/li[1]/a").click()
 time.sleep(longWaitTime)
+datos = []
 #Cantidad de paginaciones
 total_paginas = driver.find_element_by_xpath("//*[@id=\"RealtySearch\"]/div[4]/div/div[2]/div[3]/span").text
 for pagina_actual in range(1,int(total_paginas)+1):
@@ -57,7 +42,6 @@ for pagina_actual in range(1,int(total_paginas)+1):
     elems = driver.find_elements_by_css_selector("a.popover-realty.code")
     for elem in elems:
         ids.append(elem.get_attribute("id").replace("realty-code-", ""))
-    datos = []
     for id in ids: #elem = elems[0]
         dato = {}
         dato["internalCode"] = id
@@ -73,15 +57,45 @@ for pagina_actual in range(1,int(total_paginas)+1):
         dato["tipo_inmueble"] = Select(driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[2]/div[2]/select")).first_selected_option.text
         dato["subtipo_inmueble"] = Select(driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[3]/div[2]/select")).first_selected_option.text
         dato["precio"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[5]/div[2]/input").get_attribute("value")
-        dato["habitaciones"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[6]/div[2]/input").get_attribute("value")
-        dato["baños"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[7]/div[2]/div/div[1]/input").get_attribute("value")
-        dato["medioBaños"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[7]/div[2]/div/div[2]/input").get_attribute("value")
-        dato["terreno"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[8]/div[2]/div/input").get_attribute("value")
-        dato["construccion"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[9]/div[2]/div/input").get_attribute("value")
-        dato["niveles"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[12]/div[2]/input").get_attribute("value")
-        dato["estacionamiento"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[13]/div[2]/input").get_attribute("value")
-        dato["descripcion"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[3]/div[1]/div[2]/textarea").get_attribute("value")
-        #Boton guardar
+
+        #Guardado depende de tipo del inmueble
+        tipo_inmueble =dato["tipo_inmueble"]
+
+        if tipo_inmueble=="Casa":
+            dato["habitaciones"] = driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[6]/div[2]/input").get_attribute("value")
+            dato["baños"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[7]/div[2]/div/div[1]/input").get_attribute("value")
+            dato["medioBaños"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[7]/div[2]/div/div[2]/input").get_attribute("value")
+            dato["terreno"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[8]/div[2]/div/input").get_attribute("value")
+            dato["construccion"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[9]/div[2]/div/input").get_attribute("value")
+            dato["niveles"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[12]/div[2]/input").get_attribute("value")
+            dato["estacionamiento"] =  driver.find_element_by_xpath("//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[13]/div[2]/input").get_attribute("value")
+        elif tipo_inmueble=="Departamento":
+            dato["habitaciones"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[5]/div[2]/input").get_attribute("value")
+            dato["baños"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[6]/div[2]/div/div[1]/input").get_attribute("value")
+            dato["medioBaños"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[6]/div[2]/div/div[2]/input").get_attribute("value")
+
+            dato["construccion"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[7]/div[2]/div/input").get_attribute("value")
+            dato["niveles"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[10]/div[2]/input").get_attribute("value")
+            dato["estacionamiento"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[11]/div[2]/input").get_attribute("value")
+        elif tipo_inmueble == "Local":
+            dato["terreno"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[6]/div[2]/div/input").get_attribute("value")
+            dato["construccion"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[7]/div[2]/div/input").get_attribute("value")
+            dato["niveles"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[10]/div[2]/input").get_attribute("value")
+            dato["estacionamiento"] = driver.find_element_by_xpath(
+                "//*[@id=\"RealtyEditForm\"]/fieldset[2]/div[11]/div[2]/input").get_attribute("value")
+
+        dato["descripcion"] = driver.find_element_by_xpath(
+            "//*[@id=\"RealtyEditForm\"]/fieldset[3]/div[1]/div[2]/textarea").get_attribute("value")
+
         driver.get("https://www.nocnok.com/realty/detail?id=" + id)
         time.sleep(longWaitTime)
         #Busqueda de URL de la imagen

@@ -9,11 +9,26 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 
-shortWaitTime = 5
-longWaitTime = 20
+shortWaitTime = 3
+longWaitTime = 5
 veryLongTime = 45
 
-driver = webdriver.Chrome("D:\chromedriver.exe")
+def waitElement(funcElem): #Pendiente de terminar
+    intentos = 0
+    elem = ""
+    while intentos < 11:
+        try:
+            elem = funcElem()
+            break
+        except Exception as ex:
+            print(ex.message)
+            intentos+=1
+            time.sleep(shortWaitTime)
+            if intentos>10:
+                raise Exception("Elemento no encontrado")
+    return elem
+
+driver = webdriver.Chrome("chromedriver.exe")
 driver.get("https://www.nocnok.com/")
 driver.find_element_by_id("js-login").click()
 time.sleep(shortWaitTime)
@@ -37,6 +52,7 @@ for pagina_actual in range(1,int(total_paginas)+1):
             "// *[ @ id = \"RealtySearch\"] / div[4] / div / div[2] / div[3] / input").send_keys(str(pagina_actual))
         driver.find_element_by_xpath(
             "// *[ @ id = \"RealtySearch\"] / div[4] / div / div[2] / div[3] / input").send_keys(Keys.ENTER)
+        time.sleep(longWaitTime)
     ids = []
     elems = driver.find_elements_by_css_selector("a.popover-realty.code")
     for elem in elems:
@@ -68,6 +84,7 @@ for pagina_actual in range(1,int(total_paginas)+1):
         #Boton guardar
         driver.get("https://www.nocnok.com/realty/detail?id=" + id)
         time.sleep(longWaitTime)
+        #Busqueda de URL de la imagen
         dato["urlFotografia"] =  driver.find_element_by_xpath("// *[ @ id = \"RealtyCarousel\"] / div[1] / div[1] / div / img").get_attribute("src")
         datos.append(dato)
 
